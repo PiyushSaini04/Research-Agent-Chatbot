@@ -1,41 +1,33 @@
 # AI Investment Research Agent
 
-An AI-powered investment research web app that turns a company name or ticker into a structured investment research report. The app resolves the company, gathers live market and business evidence, scores data quality, builds an investment thesis, and produces a final INVEST / PASS style recommendation with evidence score, confidence, key drivers, sources, and a markdown report.
+An AI-powered investment research web app that takes a company name or ticker, resolves the public company, gathers live market and business evidence, scores the data quality, and produces a final INVEST / PASS style report with probabilities, key drivers, rationale, and sources.
 
-Assignment ZIP:
+## Submission Links
 
-https://github.com/PiyushSaini04/Research-Agent-Chatbot/raw/main/ai-investment-agent-assignment.zip
+- Live app: [https://research-agent-chatbot.vercel.app/](https://research-agent-chatbot.vercel.app/)
+- GitHub repository: [https://github.com/PiyushSaini04/Research-Agent-Chatbot](https://github.com/PiyushSaini04/Research-Agent-Chatbot)
+- Assignment ZIP: [ai-investment-agent-assignment.zip](https://github.com/PiyushSaini04/Research-Agent-Chatbot/raw/main/ai-investment-agent-assignment.zip)
 
 ## Overview
 
-The project is built as a multi-agent research assistant for public companies. A user enters a company such as Apple, Tesla, or NVIDIA. The backend runs a LangGraph workflow that collects company profile data, financial metrics, recent news, competitors, risk factors, valuation context, and macroeconomic context. The frontend streams each stage in real time and then renders the final decision and report.
-
-Main capabilities:
-
-- Resolve company names to the correct public ticker.
-- Run seven research agents in parallel for faster analysis.
-- Use FMP as the primary financial statement and company profile source.
-- Use Gemini for synthesis, scoring, and report writing, with deterministic fallback behavior when model calls fail.
-- Score data quality before making a recommendation.
-- Persist sessions, execution logs, recommendations, reports, probabilities, sources, and restored state in Supabase.
-- Provide a clean final report that can be copied, downloaded, or printed.
+This project is a multi-agent research assistant for public companies. A user enters a company such as Apple, Tesla, or NVIDIA, and the backend runs a LangGraph workflow that collects company profile data, financial metrics, recent news, competitor context, risk factors, valuation signals, and macroeconomic context. The frontend streams the progress live and then renders a final recommendation and markdown report.
 
 ## How To Run It
 
-### 1. Prerequisites
+### Prerequisites
 
 - Node.js 20 or newer
 - npm
 - A Supabase project
 - API keys for the providers listed below
 
-### 2. Install dependencies
+### Install
 
 ```bash
 npm install
 ```
 
-### 3. Create environment variables
+### Environment Variables
 
 Create a `.env.local` file in the project root.
 
@@ -55,7 +47,7 @@ RAPIDAPI_HOST=apidojo-yahoo-finance-v1.p.rapidapi.com
 RATE_LIMIT_REQUESTS_PER_HOUR=10
 ```
 
-Required for the core app:
+Core app variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -71,7 +63,7 @@ Optional or secondary providers:
 - `RAPIDAPI_HOST`
 - `RATE_LIMIT_REQUESTS_PER_HOUR`
 
-### 4. Set up Supabase
+### Supabase Setup
 
 Run the SQL migrations in `supabase/migrations` in order, or apply the combined script:
 
@@ -79,16 +71,7 @@ Run the SQL migrations in `supabase/migrations` in order, or apply the combined 
 supabase/migrations/APPLY_IN_SUPABASE.sql
 ```
 
-The database stores:
-
-- user sessions
-- resolved companies
-- agent execution logs
-- saved reports
-- final recommendation fields
-- evidence score, confidence, probabilities, sources, and data quality
-
-### 5. Start the development server
+### Run Locally
 
 ```bash
 npm run dev
@@ -100,7 +83,7 @@ Open:
 http://localhost:3000
 ```
 
-### 6. Run checks
+### Validate
 
 ```bash
 npm test
@@ -110,107 +93,96 @@ npm run build
 
 ## How It Works
 
-The system uses this workflow:
+The workflow is:
 
 ```text
-Planner
-  -> Parallel Research
-  -> Aggregator
-  -> Data Quality
-  -> Decision
-  -> Report
+Planner -> Parallel Research -> Aggregator -> Data Quality -> Decision -> Report
 ```
 
 ### Planner
 
-The planner resolves the user input into a company ticker, company name, exchange, country, and currency. It checks cached Supabase company records first, then uses external search providers when needed.
+Resolves the user input into a ticker and company metadata. It checks cached Supabase company records first and then falls back to search providers.
 
 ### Parallel Research
 
-After the company is resolved, seven research stages run in parallel:
+Runs seven research stages in parallel:
 
-- Company profile: sector, industry, website, description, employees, headquarters, and basic company metadata.
-- Financial health: FMP-backed revenue, income, EPS, margins, cash flow, debt, valuation ratios, market cap, and price data.
-- Market news: recent company and market news from Tavily.
+- Company profile: sector, industry, website, description, and headquarters details.
+- Financial health: FMP-backed revenue, income, EPS, margins, cash flow, debt, and valuation ratios.
+- Market news: recent company and market news.
 - Competitors: peer companies and competitive positioning.
-- Risk factors: business, market, execution, and filing/news-based risks.
-- Valuation: valuation multiples and fair-value context.
-- Market outlook: macroeconomic and sector-level conditions.
-
-The UI shows these stages as professional user-facing labels and marks each stage complete when its data is finished.
+- Risk factors: business, market, and filing/news-based risks.
+- Valuation: fair-value and multiple-based context.
+- Market outlook: macroeconomic and sector conditions.
 
 ### Aggregator
 
-The aggregator combines the raw research outputs into a compact context block. This gives the decision and report stages a single clean evidence package instead of scattered agent outputs.
+Combines the raw research into a compact evidence summary for the decision stage.
 
 ### Data Quality
 
-The data quality agent checks how complete the evidence is before the final decision. It scores company data, financial data, news, competition, and risk coverage. Missing high-impact financial metrics reduce confidence instead of silently producing an overconfident answer.
+Scores how complete the evidence is before the recommendation is made. Missing high-impact financial metrics reduce confidence instead of silently producing an overconfident result.
 
 ### Decision
 
-The decision stage produces:
-
-- recommendation tier
-- INVEST or PASS decision
-- evidence score
-- confidence score
-- invest probability
-- pass probability
-- key drivers
-- rationale
-- fallback warning when the AI model is unavailable
-
-If Gemini quota or availability fails, the app uses deterministic fallback scoring instead of showing raw provider errors to the user.
+Produces the final recommendation, evidence score, confidence, invest/pass probabilities, key drivers, and rationale. If Gemini is unavailable or rate-limited, the app uses deterministic fallback logic instead of exposing raw provider errors to the user.
 
 ### Report
 
-The report stage generates a markdown investment research report. If AI narrative generation fails or times out, the app still creates a deterministic fallback report from the structured research data.
+Generates the final markdown report. If narrative generation fails or times out, the app still produces a deterministic fallback report from the structured research data.
 
-## API And Provider Roles
+## How I Built It
 
-- FMP: primary source for financial statements, company profile, key metrics, quote data, and ratios.
-- Gemini: company resolution assistance, evidence scoring, qualitative synthesis, valuation/risk/macroeconomic reasoning, and report narrative generation.
-- Tavily: recent news and web research.
-- Supabase: authentication, persistence, saved reports, session restore, companies cache, and execution logs.
-- Finnhub and Yahoo/RapidAPI: secondary lookup or non-core provider support where still present in the codebase. Core financial statement values are intentionally FMP-backed.
+- `Next.js` for the app shell, API routes, and deployment-friendly structure.
+- `LangGraph` for the agent workflow and stage-based execution.
+- `FMP` as the primary source of truth for financial statements and company profile fields.
+- `Gemini` for reasoning, scoring, and report generation.
+- `Tavily` for recent news and web research.
+- `Supabase` for authentication, persistence, saved reports, company caching, and agent logs.
+- `TypeScript` for type safety across the data pipeline.
 
 ## Key Decisions And Trade-Offs
 
-- LangGraph was chosen because the research flow is stateful and benefits from explicit stages.
-- Parallel research agents were used so the UI can stream progress and the backend can reduce total wait time.
-- FMP is used as the single source of truth for financial statement fields to avoid conflicting provider merges.
-- Data quality is separated from the final recommendation so missing data lowers confidence without automatically forcing a hard PASS.
-- Gemini is used for narrative and synthesis, but deterministic fallbacks keep the app usable during quota or rate-limit failures.
-- Supabase is used for persistence so users can restore old reports and review the agent timeline later.
+- FMP is the single source of truth for financial statement fields to avoid conflicting provider merges.
+- Parallel research reduces total wait time and keeps the UI responsive.
+- Data quality is separated from the final decision so missing data lowers confidence instead of forcing a hard failure.
+- Deterministic fallbacks keep the app usable during AI model quota or provider failures.
+- Supabase persistence makes it possible to restore old sessions and review the timeline later.
 
 Trade-offs:
 
 - The app is a research assistant, not a licensed financial advisor.
 - Live API quality affects the final report.
-- The scoring model is transparent and practical, but not a full institutional valuation model.
-- Some deeper features were intentionally left out to keep the assignment focused and runnable.
+- The scoring model is practical and transparent, but not a full institutional valuation model.
+- Some deeper features were intentionally left out to keep the assignment focused and easy to run.
 
 ## Example Runs
 
-These examples describe the expected output style. Exact values may change with market data, provider availability, and model responses.
+These examples describe the expected output style. Exact values can vary with live market data and provider availability.
 
 ### Apple Inc. (AAPL)
 
 - Typical result: PASS or HOLD-style conservative recommendation
-- Evidence: strong profitability, strong balance sheet, large market cap, but premium valuation and slower growth pressure the upside case
-- Output includes: company profile, FMP financials, recent news, valuation discussion, data quality score, probabilities, and markdown report
+- Evidence: strong profitability, strong balance sheet, premium valuation, and slower growth pressure
 
 ### NVIDIA Corporation (NVDA)
 
 - Typical result: INVEST or strong positive recommendation when evidence quality is high
 - Evidence: AI demand, revenue growth, strong margins, and strong market positioning
-- Main risks: valuation expectations, cyclicality, competition, and execution risk
 
 ### Tesla Inc. (TSLA)
 
 - Typical result: PASS or cautious recommendation depending on valuation and current evidence
-- Evidence: strong brand and growth potential, but valuation sensitivity, competition, margin pressure, and execution risk can reduce confidence
+- Evidence: brand strength and growth potential, but valuation sensitivity, competition, margin pressure, and execution risk can reduce confidence
+
+## What I Would Improve With More Time
+
+- Add charts for revenue, margins, valuation, and data quality.
+- Add stronger caching for repeated research runs.
+- Add richer source citations in the final report.
+- Add deeper historical valuation and backtesting.
+- Add analyst estimate comparison and earnings transcript analysis.
+- Add deployment notes for production Supabase and Vercel setup.
 
 ## Project Structure
 
@@ -228,16 +200,6 @@ supabase/migrations      Database schema and migration SQL
 tests                    Unit and integration-style tests
 ```
 
-## What I Would Improve With More Time
-
-- Add charts for revenue, margins, valuation, and data quality.
-- Add stronger caching for repeated research runs.
-- Add OpenRouter or another model router to reduce single-provider AI quota issues.
-- Add deeper historical valuation and backtesting.
-- Add analyst estimate comparison and earnings transcript analysis.
-- Add source-level citations directly beside each report claim.
-- Add deployment documentation for Vercel and Supabase production setup.
-
 ## Important Note
 
-This project is for research and educational purposes. It does not provide financial advice. Any investment decision should be checked against professional judgment and additional due diligence.
+This project is for research and educational purposes only. It does not provide financial advice. Any investment decision should be checked with additional due diligence and professional judgment.

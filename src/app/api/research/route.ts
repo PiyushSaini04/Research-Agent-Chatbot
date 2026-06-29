@@ -22,7 +22,7 @@ const STAGE_LABELS: Record<string, string> = {
   planner: "Resolving Company",
   parallel_research: "Collecting Research Evidence",
   aggregator: "Building Investment Thesis",
-  dataQuality: "Assessing Data Quality",
+  data_quality: "Assessing Data Quality",
   decision: "Building Investment Thesis",
   report: "Generating Research Report",
 };
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
           planner: "Resolving Company",
           parallel_research: "Collecting Research Evidence",
           aggregator: "Building Investment Thesis",
-          dataQuality: "Assessing Data Quality",
+          data_quality: "Assessing Data Quality",
           decision: "Building Investment Thesis",
           report: "Generating Research Report",
         };
@@ -340,7 +340,7 @@ export async function POST(request: NextRequest) {
               context_length_chars: nodeOutput.aggregatedContext?.length ?? 0,
             },
           });
-        } else if (nodeName === "dataQuality") {
+        } else if (nodeName === "data_quality") {
           const dq = nodeOutput.dataQuality;
           await emitAndLog("agent_update", {
             agent: "Assessing Data Quality",

@@ -217,7 +217,7 @@ export function buildResearchGraph() {
     .addNode("planner", wrapAgent(plannerAgent))
     .addNode("parallel_research", parallelResearchNode)
     .addNode("aggregator", wrapAgent(aggregatorAgent))
-    .addNode("dataQuality", wrapAgent(dataQualityAgent))
+    .addNode("data_quality", wrapAgent(dataQualityAgent))
     .addNode("decision", wrapAgent(decisionAgent))
     .addNode("report", wrapAgent(reportAgent))
     .addNode("error", errorNode)
@@ -228,8 +228,8 @@ export function buildResearchGraph() {
     })
     .addEdge("error", END)
     .addEdge("parallel_research", "aggregator")
-    .addEdge("aggregator", "dataQuality")
-    .addEdge("dataQuality", "decision")
+    .addEdge("aggregator", "data_quality")
+    .addEdge("data_quality", "decision")
     .addEdge("decision", "report")
     .addEdge("report", END);
 
